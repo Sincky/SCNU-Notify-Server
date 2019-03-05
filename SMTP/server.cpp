@@ -113,7 +113,7 @@ int Server::updateConf()
 			sender_userN = line.substr(pos + 5);
 		}
 		if (sender_passW.empty() && (pos = line.find("PASSW=")) != string::npos) {
-			sender_passW = line.substr(pos + 5);
+			sender_passW = line.substr(pos + 6);
 		}
 		if (line.find("[Recipient]")!=string::npos) {
 			while (getline(file, line)) {
