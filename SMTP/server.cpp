@@ -1,6 +1,7 @@
 #include "server.h"
 #include <fstream>
 #include <sstream>
+#include <stdexcept>
 Server::Server()
 {
 	
@@ -11,12 +12,14 @@ Server::~Server()
 	smtp.~Smtp();
 }
 
-int Server::init(string & url)
+int Server::init()
 {
-	this->url = url;
-	
+
 	if (smtp.Init()) {
 		cerr << "Failed init smtp!" << endl;
+		return -1;
+	}
+	if (updateConf()==-1) {
 		return -1;
 	}
 
@@ -47,16 +50,17 @@ void Server::run()
 		case -4:
 			cout << "网络连接失败！" << endl;
 			cout << "Waiting for 1h to retry..." << endl;
-			Sleep(1000 * 60 * 60);
+			Sleep(1000 * 60 * 60);//1小时
 			break;
 		default:
 			cout << "Other fault: " << status << endl;
-			cout << "Waiting for 1h to retry..." << endl;
-			Sleep(1000 * 60 * 60); //一小时
+			cout << "Waiting for 6h to retry..." << endl;
+			Sleep(1000 * 60 * 60 * 6); //6小时
 			break;
 		}
 
 	}
+
 	
 	//删除已读取的资源
 	delete sourceStr;
@@ -98,21 +102,27 @@ int Server::updateConf()
 	email.clear();
 	ifstream file("./conf.ini");
 	if (!file.is_open()) {
-		cout << "配置读取失败1";
+		cout << "配置文件打开失败！请检查配置文件~";
 		return -1;
 	}
 
 	int pos;
 	string line;
 	while (getline(file, line)) {
-		if (smtp_url.empty() && (pos = line.find("SMTP=")) != string::npos) {
+		if (url.empty() && (pos = line.find("URL=")) == 0) {
+			url = line.substr(pos + 4);
+		}
+		if (cookie.empty() && (pos = line.find("COOKIE=")) == 0) {
+			cookie = line.substr(pos + 7);
+		}
+		if (smtp_url.empty() && (pos = line.find("SMTP=")) == 0) {
 
 			smtp_url = line.substr(pos + 5);
 		}
-		if (sender_userN.empty() && (pos = line.find("USER=")) != string::npos) {
+		if (sender_userN.empty() && (pos = line.find("USER=")) == 0) {
 			sender_userN = line.substr(pos + 5);
 		}
-		if (sender_passW.empty() && (pos = line.find("PASSW=")) != string::npos) {
+		if (sender_passW.empty() && (pos = line.find("PASSW=")) == 0) {
 			sender_passW = line.substr(pos + 6);
 		}
 		if (line.find("[Recipient]")!=string::npos) {
@@ -125,13 +135,17 @@ int Server::updateConf()
 	}
 	
 
-	if (smtp_url.empty() || sender_userN.empty() || sender_passW.empty() || email.empty()) {
-		cout << "配置读取失败2";
+	if (url.empty() || smtp_url.empty() || sender_userN.empty() || sender_passW.empty() || email.empty()) {
+		cout << "配置读取失败，请检查配置格式是否正确~" << endl;
 		return -1;
 	}
 	else {
 		cout << ">当前配置信息<" << endl;
-		cout <<"SMTP_URL:" << smtp_url << endl <<"SENDER:"<<sender_userN << endl;
+		cout << "URL:" << url << endl
+			 << "COOKIE:" << cookie << endl
+			 <<"SMTP_URL:" << smtp_url << endl
+			 <<"SENDER:"<<sender_userN << endl 
+			 << "PASSW:" <<sender_passW<< endl;
 		for (auto i : email) {
 			cout <<"Recipient: "<< i << endl;
 		}
@@ -144,7 +158,7 @@ int Server::updateConf()
 
 int Server::readWebSource(string &str)
 {
-	int status = http_read(this->url, str);
+	int status = http_read(this->url,this->cookie, str);
 	return status;
 }
 
@@ -158,12 +172,19 @@ int Server::InfoInit()
 	//读取紫荆网公告网页数据
 	int status = readWebSource(sourceStr);
 	if (status != 0)
-	{
+	{	
+		cout << "读取Web错误" << endl;
 		return status;
 	}
 
 	// 提取信息
-	extractInfo(sourceStr);
+	status = extractInfo(sourceStr);
+	if (status != 0)
+	{
+		cout << "提取信息错误" << endl;
+		return status;
+	}
+	
 
 	// 从信息集缓存中查看信息
 	if (units.empty())
@@ -205,7 +226,11 @@ int Server::InfoDetect()
 	}
 
 	// 提取信息
-	extractInfo(sourceStr);
+	stauts = extractInfo(sourceStr);
+	if (stauts != 0)
+	{
+		return stauts;
+	}
 
 	units_it = units.begin();
 
@@ -304,48 +329,59 @@ const string divTitleEnd = "</a>";
 
 int Server::extractInfo(string str)
 {
-	//定位
-	int sFirst = str.find(divClass);
-	int sEnd = str.find(divClassEnd);
+	int sFirst = 0;
+	int sEnd = 0;
+	try {
+		//定位
+		sFirst = str.find(divClass);
+		sEnd = str.find(divClassEnd);
+	
+		//定位分割
+		str = str.substr(sFirst, sEnd - sFirst);
 
-	//定位分割
-	str = str.substr(sFirst, sEnd - sFirst);
+		// string str[10][3];
+		int times = 0;
 
-	// string str[10][3];
-	int times = 0;
+		for (int i = 0; i < 10; i++)
+		{
+			string tempStr;
+			string strStr, unitStr, unitStr2, unitStr3;
+			int tempF, tempE;
+			//大分割
+			sFirst = str.find(divLi);
+			sEnd = str.find(divLiEnd) + divLiEnd.length();
+			//细节分割
+			tempStr = str.substr(sFirst, sEnd - sFirst);
 
-	for (int i = 0; i<10; i++)
-	{
-		string tempStr;
-		string strStr, unitStr, unitStr2, unitStr3;
-		int tempF, tempE;
-		//大分割
-		sFirst = str.find(divLi);
-		sEnd = str.find(divLiEnd) + divLiEnd.length();
-		//细节分割
-		tempStr = str.substr(sFirst, sEnd - sFirst);
+			//网址获取
+			tempF = tempStr.find(divHref) + divHref.length();
+			tempE = tempStr.find(divHrefEnd, tempF);;
+			unitStr = tempStr.substr(tempF, tempE - tempF);
 
-		//网址获取
-		tempF = tempStr.find(divHref) + divHref.length();
-		tempE = tempStr.find(divHrefEnd, tempF);;
-		unitStr = tempStr.substr(tempF, tempE - tempF);
+			//标题获取
+			tempF = tempStr.find(divTitle, tempE) + divTitle.length();
+			tempE = tempStr.find(divTitleEnd);
+			unitStr3 = tempStr.substr(tempF, tempE - tempF);
 
-		//标题获取
-		tempF = tempStr.find(divTitle, tempE) + divTitle.length();
-		tempE = tempStr.find(divTitleEnd);
-		unitStr3 = tempStr.substr(tempF, tempE - tempF);
+			//时间获取
+			tempF = tempStr.find(divTime) + divTime.length();
+			tempE = tempStr.find(divTimeEnd);
+			unitStr2 = tempStr.substr(tempF, tempE - tempF);
 
-		//时间获取
-		tempF = tempStr.find(divTime) + divTime.length();
-		tempE = tempStr.find(divTimeEnd);
-		unitStr2 = tempStr.substr(tempF, tempE - tempF);
+			// 加入信息集缓存
+			units.push_back(unit(unitStr2, unitStr3, unitStr));
 
-		// 加入信息集缓存
-		units.push_back(unit(unitStr2, unitStr3, unitStr));
-		
-		//迭代分割?
-		str = str.substr(sEnd, str.size());
+			//迭代分割?
+			str = str.substr(sEnd, str.size());
+		}
 	}
+	catch (std::exception e) {
+		cout << "*信息分割异常*" << endl;
+		cout << e.what() << endl;
+		cout << "First:" << sFirst << " " << "End:" << sEnd << endl;
+		return -8;
+	}
+	
 
 	return 0;
 }

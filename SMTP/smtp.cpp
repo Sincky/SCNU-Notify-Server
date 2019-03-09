@@ -61,23 +61,26 @@ int Smtp::Connect(string address, unsigned int port,string account,string passwo
 		cout << address << " " << port << endl;
 		return -1;
 	}
-
+	cout << "connect: " << endl;
 	recv(sClient, rBuff, 1024, 0);
 	cout << rBuff << endl;
 
 	//打招呼
+	cout << "helo hihi: " << endl;
 	sBuff = "helo hihi\r\n";
 	send(sClient, sBuff.c_str(), sBuff.size(), 0);
 	recv(sClient, rBuff, 1024, 0);
 	cout << rBuff << endl;
 
 	//开始登陆
+	cout << "auth login: " << endl;
 	sBuff = "auth login\r\n";
 	send(sClient, sBuff.c_str(), sBuff.size(), 0);
 	recv(sClient, rBuff, 1024, 0);
 	cout << rBuff << endl;
 
 	//发送账号
+	cout << "send userN: " << endl;
 	sBuff = base64_encode(account.c_str(), account.size()) + "\r\n";
 	cout << sBuff<<endl;
 	send(sClient, sBuff.c_str(), sBuff.size(), 0);
@@ -85,6 +88,7 @@ int Smtp::Connect(string address, unsigned int port,string account,string passwo
 	cout << rBuff << endl;
 
 	//发送密码
+	cout << "send passW: " << endl;
 	sBuff = base64_encode(password.c_str(), password.size()) + "\r\n";
 	cout << sBuff<<endl;
 	send(sClient, sBuff.c_str(), sBuff.size(), 0);
@@ -92,6 +96,7 @@ int Smtp::Connect(string address, unsigned int port,string account,string passwo
 	cout << rBuff << endl;
 
 	//发送发件人
+	cout << "send FROM: " << endl;
 	sBuff = "MAIL FROM:<" + account + ">\r\n";
 	send(sClient, sBuff.c_str(), sBuff.size(), 0);
 	recv(sClient, rBuff, 1024, 0);
@@ -103,7 +108,7 @@ int Smtp::Connect(string address, unsigned int port,string account,string passwo
 // 添加收件人
 int Smtp::RCPT(string recipient)
 {
-	
+	cout << "send recipients: " << endl;
 	sBuff = "RCPT TO:<" + recipient + ">\r\n";
 	send(sClient, sBuff.c_str(), sBuff.size(), 0) ;
 	recv(sClient, rBuff, 1024, 0);
@@ -115,18 +120,20 @@ int Smtp::RCPT(string recipient)
 // 添加数据
 int Smtp::Date(string YourName,string TaName,string Title,string text)
 {
-
+	cout << "send Data: " << endl;
 	sBuff = "Data\r\n";
 	send(sClient, sBuff.c_str(), sBuff.size(), 0);
 	recv(sClient, rBuff, 1024, 0);
 	cout << rBuff << endl;
 
+	cout << "send Title: " << endl;
 	sBuff = "From:" + YourName + "<" + Account + ">" + "\r\nTo:" + TaName + "\r\nSubject:" + Title + "\r\n\r\n" + text + "\r\n"+"."+"\r\n";
 	send(sClient, sBuff.c_str(), sBuff.size(), 0);
 	recv(sClient, rBuff, 1024, 0);
 	cout << rBuff << endl;
 
 	//离开
+	cout << "sed quit: " << endl;
 	sBuff = "quit\r\n";
 	send(sClient, sBuff.c_str(), sBuff.size(), 0);
 	recv(sClient, rBuff, 1024, 0);

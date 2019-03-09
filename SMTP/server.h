@@ -22,7 +22,7 @@ public:
 	Server();
 	~Server();
 	// 初始化
-	int init(string &url);
+	int init();
 	// 运行
 	void run();
 	// 更新发送者、收件人信息
@@ -31,6 +31,7 @@ public:
 private:
 	Smtp smtp; //发信服务器
 	string url; //目标地址
+	string cookie;
 	string smtp_url;
 	string sender_userN;
 	string sender_passW;

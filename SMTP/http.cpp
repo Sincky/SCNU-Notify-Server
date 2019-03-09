@@ -1,6 +1,6 @@
 #include "http.h"
 
-int http_read(const string &url,string &returnStr)
+int http_read(const string &url,const string &cookie ,string &returnStr)
 {
 	WORD wVersionRequested;
 	WSADATA wsaData;
@@ -27,13 +27,16 @@ int http_read(const string &url,string &returnStr)
 	//’˝‘Ú»°web°¢host
 	string web;
 	string hosts;
+	string cookies = cookie;
 	regex reg("//([^/]+)(.*)");
 	smatch match;
 	regex_search(url, match, reg);
 	hosts = match.str(1);
 	web = match.str(2).c_str();
 	host = gethostbyname(hosts.c_str());
-
+	cout << "[SOCKET]" << endl
+		 << "HOSTS:" << hosts << endl
+		 << "WEB:" << web << endl;
 	if (host == NULL)
 	{
 		return -4;
@@ -58,7 +61,11 @@ int http_read(const string &url,string &returnStr)
 	setsockopt(sClient, SOL_SOCKET, SO_SNDTIMEO, (char *)&TimeOut, sizeof(int));
 
 	//
-	sBuff = "GET "+ web + " HTTP/1.1\r\nHOST: " + hosts + "\r\nConnection: Close\r\n\r\n";
+	sBuff = "GET "+ web + " HTTP/1.1\r\n" +
+			"HOST: " + hosts + "\r\n" +
+			"Connection: Close\r\n"+
+			"Cookie:"+ cookies +"\r\n"+
+			"\r\n";
 	if (!send(sClient, sBuff.c_str(), sBuff.size(), 0))
 	{
 		cout << "Send error!" << endl;

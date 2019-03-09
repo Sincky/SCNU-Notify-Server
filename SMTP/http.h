@@ -9,6 +9,6 @@
 
 using namespace std;
 
-int http_read(const string &url, string &returnStr);
+int http_read(const string &url, const string &cookie,string &returnStr);
 
 void UTF8toANSI(string &strUTF8);
