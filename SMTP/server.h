@@ -1,4 +1,4 @@
-#pragma once
+
 
 #include <iostream>
 #include "http.h"
@@ -6,7 +6,7 @@
 
 using namespace std;
 
-// ĞÅÏ¢½á¹¹Ìå
+// ä¿¡æ¯ç»“æ„ä½“
 struct unit
 {
 	string time;
@@ -21,40 +21,42 @@ class Server {
 public:
 	Server();
 	~Server();
-	// ³õÊ¼»¯
+	// åˆå§‹åŒ–
 	int init();
-	// ÔËĞĞ
+	// è¿è¡Œ
 	void run();
-	// ¸üĞÂ·¢ËÍÕß¡¢ÊÕ¼şÈËĞÅÏ¢
+	// æ›´æ–°å‘é€è€…ã€æ”¶ä»¶äººä¿¡æ¯
 	int updateConf();
 
 private:
-	Smtp smtp; //·¢ĞÅ·şÎñÆ÷
-	string url; //Ä¿±êµØÖ·
+	Smtp smtp; //å‘ä¿¡æœåŠ¡å™¨
+	string url; //ç›®æ ‡åœ°å€
 	string cookie;
 	string smtp_url;
 	string sender_userN;
 	string sender_passW;
-	set<string> address; //´æ´¢ĞÅÏ¢
-	vector<string> email; //´æ´¢ÊÕ¼şÈËemailµØÖ·
-	vector<unit> units;	//ĞÅÏ¢¼¯»º´æ
-	vector<unit> units_send; //´ı·¢ËÍĞÅÏ¢¼¯»º´æ
-	vector<unit>::iterator units_it; //ĞÅÏ¢¼¯Í¨ÓÃµü´úÆ÷
-	
-	// ¶ÁÈ¡ÍøÒ³Ô´Âë
+	set<string> address; //å­˜å‚¨ä¿¡æ¯
+	vector<string> email; //å­˜å‚¨æ”¶ä»¶äººemailåœ°å€
+	vector<unit> units;	//ä¿¡æ¯é›†ç¼“å­˜
+	vector<unit> units_send; //å¾…å‘é€ä¿¡æ¯é›†ç¼“å­˜
+	vector<unit>::iterator units_it; //ä¿¡æ¯é›†é€šç”¨è¿­ä»£å™¨
+
+	// è¯»å–ç½‘é¡µæºç 
 	int readWebSource(string &Str);
 
-	// ĞÅÏ¢³õÊ¼»¯
+	// ä¿¡æ¯åˆå§‹åŒ–
 	int InfoInit();
 
-	// ĞÅÏ¢¼ì²â
+	// ä¿¡æ¯æ£€æµ‹
 	int InfoDetect();
-	
-	// ·¢ËÍĞÅÏ¢
+
+	// å‘é€ä¿¡æ¯
 	int InfoSend(const string &info);
 
-	// ÌáÈ¡ĞÅÏ¢ 
+	// æå–ä¿¡æ¯
 	int extractInfo(string str);
 
+	// é¦–ä½å»ç©º
+	string& Trim(string& str);
 
 };

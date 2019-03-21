@@ -1,10 +1,10 @@
-#include "server.h"
+ï»¿#include "server.h"
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
 Server::Server()
 {
-	
+
 }
 
 Server::~Server()
@@ -29,15 +29,15 @@ int Server::init()
 
 void Server::run()
 {
-	//ÔËĞĞ¶ÁÈ¡ÍøÒ³Êı¾İ	
+	//è¿è¡Œè¯»å–ç½‘é¡µæ•°æ®
 	string *sourceStr = new string;
 	bool readTrue = false;
 
 	while (!readTrue)
 	{
-		cout << "[³õÊ¼»¯]Reading web source..." << endl;
+		cout << "[åˆå§‹åŒ–]Reading web source..." << endl;
 
-		//ĞÅÏ¢ÎÄ±¾³õÊ¼»¯´¦Àí
+		//ä¿¡æ¯æ–‡æœ¬åˆå§‹åŒ–å¤„ç†
 		int status = InfoInit();
 
 		switch (status)
@@ -48,33 +48,34 @@ void Server::run()
 			break;
 		case -3:
 		case -4:
-			cout << "ÍøÂçÁ¬½ÓÊ§°Ü£¡" << endl;
+			cout << "ç½‘ç»œè¿æ¥å¤±è´¥ï¼" << endl;
 			cout << "Waiting for 1h to retry..." << endl;
-			Sleep(1000 * 60 * 60);//1Ğ¡Ê±
+
+			sleep(60 * 60);//1å°æ—¶
 			break;
 		default:
 			cout << "Other fault: " << status << endl;
 			cout << "Waiting for 6h to retry..." << endl;
-			Sleep(1000 * 60 * 60 * 6); //6Ğ¡Ê±
+			sleep(60 * 60 * 6); //6å°æ—¶
 			break;
 		}
 
 	}
 
-	
-	//É¾³ıÒÑ¶ÁÈ¡µÄ×ÊÔ´
+
+	//åˆ é™¤å·²è¯»å–çš„èµ„æº
 	delete sourceStr;
 
-	cout << "[ÔËĞĞ]³ÌĞò³õÊ¼»¯³É¹¦£¬¿ªÊ¼ÔËĞĞÖĞ¡£¡£" << endl;
+	cout << "[è¿è¡Œ]ç¨‹åºåˆå§‹åŒ–æˆåŠŸï¼Œå¼€å§‹è¿è¡Œä¸­ã€‚ã€‚" << endl;
 
-	//¿ªÊ¼Ñ­»·¶ÁÈ¡
+	//å¼€å§‹å¾ªç¯è¯»å–
 	readTrue = false;
 	while (1)
 	{
-		Sleep(1000 * 60 * 60 * 6);
+		sleep(60*60*6);
 		//Sleep(1000*30);
 		int status = InfoDetect();
-		
+
 		switch (status)
 		{
 		case 0:
@@ -82,7 +83,7 @@ void Server::run()
 			break;
 		case -3:
 		case -4:
-			cout << "ÍøÂçÁ¬½ÓÊ§°Ü£¡" << endl;
+			cout << "ç½‘ç»œè¿æ¥å¤±è´¥ï¼" << endl;
 			cout << "Waiting for next time(6h) to retry..." << endl;
 			break;
 		default:
@@ -97,12 +98,12 @@ void Server::run()
 
 int Server::updateConf()
 {
-	//¶ÁÈ¡
+	//è¯»å–
 
 	email.clear();
 	ifstream file("./conf.ini");
 	if (!file.is_open()) {
-		cout << "ÅäÖÃÎÄ¼ş´ò¿ªÊ§°Ü£¡Çë¼ì²éÅäÖÃÎÄ¼ş~";
+		cout << "é…ç½®æ–‡ä»¶æ‰“å¼€å¤±è´¥ï¼è¯·æ£€æŸ¥é…ç½®æ–‡ä»¶~";
 		return -1;
 	}
 
@@ -111,40 +112,46 @@ int Server::updateConf()
 	while (getline(file, line)) {
 		if (url.empty() && (pos = line.find("URL=")) == 0) {
 			url = line.substr(pos + 4);
+			Trim(url);
 		}
 		if (cookie.empty() && (pos = line.find("COOKIE=")) == 0) {
 			cookie = line.substr(pos + 7);
+			Trim(cookie);
 		}
 		if (smtp_url.empty() && (pos = line.find("SMTP=")) == 0) {
-
 			smtp_url = line.substr(pos + 5);
+			Trim(smtp_url);
 		}
 		if (sender_userN.empty() && (pos = line.find("USER=")) == 0) {
 			sender_userN = line.substr(pos + 5);
+			Trim(sender_userN);
 		}
 		if (sender_passW.empty() && (pos = line.find("PASSW=")) == 0) {
 			sender_passW = line.substr(pos + 6);
+			Trim(sender_passW);
+
+
 		}
 		if (line.find("[Recipient]")!=string::npos) {
 			while (getline(file, line)) {
 				if (line.find('#') == string::npos) {
-					email.push_back(line);
+					email.push_back(Trim(line));
 				}
 			}
 		}
 	}
-	
+
 
 	if (url.empty() || smtp_url.empty() || sender_userN.empty() || sender_passW.empty() || email.empty()) {
-		cout << "ÅäÖÃ¶ÁÈ¡Ê§°Ü£¬Çë¼ì²éÅäÖÃ¸ñÊ½ÊÇ·ñÕıÈ·~" << endl;
+		cout << "é…ç½®è¯»å–å¤±è´¥ï¼Œè¯·æ£€æŸ¥é…ç½®æ ¼å¼æ˜¯å¦æ­£ç¡®~" << endl;
 		return -1;
 	}
 	else {
-		cout << ">µ±Ç°ÅäÖÃĞÅÏ¢<" << endl;
+		cout << ">å½“å‰é…ç½®ä¿¡æ¯<" << endl;
 		cout << "URL:" << url << endl
 			 << "COOKIE:" << cookie << endl
 			 <<"SMTP_URL:" << smtp_url << endl
-			 <<"SENDER:"<<sender_userN << endl 
+			 <<"SENDER:"<<sender_userN << endl
 			 << "PASSW:" <<sender_passW<< endl;
 		for (auto i : email) {
 			cout <<"Recipient: "<< i << endl;
@@ -169,27 +176,27 @@ int Server::InfoInit()
 {
 	string sourceStr;
 
-	//¶ÁÈ¡×Ï¾£Íø¹«¸æÍøÒ³Êı¾İ
+	//è¯»å–ç´«è†ç½‘å…¬å‘Šç½‘é¡µæ•°æ®
 	int status = readWebSource(sourceStr);
 	if (status != 0)
-	{	
-		cout << "¶ÁÈ¡Web´íÎó" << endl;
+	{
+		cout << "è¯»å–Webé”™è¯¯" << endl;
 		return status;
 	}
 
-	// ÌáÈ¡ĞÅÏ¢
+	// æå–ä¿¡æ¯
 	status = extractInfo(sourceStr);
 	if (status != 0)
 	{
-		cout << "ÌáÈ¡ĞÅÏ¢´íÎó" << endl;
+		cout << "æå–ä¿¡æ¯é”™è¯¯" << endl;
 		return status;
 	}
-	
 
-	// ´ÓĞÅÏ¢¼¯»º´æÖĞ²é¿´ĞÅÏ¢
+
+	// ä»ä¿¡æ¯é›†ç¼“å­˜ä¸­æŸ¥çœ‹ä¿¡æ¯
 	if (units.empty())
 	{
-		cout << "ĞÅÏ¢³õÊ¼»¯Ê§°Ü£¡" << endl;
+		cout << "ä¿¡æ¯åˆå§‹åŒ–å¤±è´¥ï¼" << endl;
 		return -7;
 	}
 
@@ -198,7 +205,7 @@ int Server::InfoInit()
 	for (unsigned int i = 0; units_it!=units.end(); i++)
 	{
 		unit unit_t = *(units_it++);
-		//µØÖ·¼¯ºÏ²åÈë
+		//åœ°å€é›†åˆæ’å…¥
 		if (address.insert(unit_t.address).second)
 		{
 			cout << "[True:" << i << "]" << endl << "Time: " << unit_t.time << endl << "Title: " << unit_t.title << endl << "Address: " << unit_t.address << endl;
@@ -209,23 +216,23 @@ int Server::InfoInit()
 		}
 	}
 
-	//É¾³ıĞÅÏ¢¼¯»º´æ,£¨Çå³ıÔªËØ£¬µ«ĞÅÏ¢¼¯¿Õ¼ä´óĞ¡»¹ÔÚ£©
+	//åˆ é™¤ä¿¡æ¯é›†ç¼“å­˜,ï¼ˆæ¸…é™¤å…ƒç´ ï¼Œä½†ä¿¡æ¯é›†ç©ºé—´å¤§å°è¿˜åœ¨ï¼‰
 	units.clear();
-	
+
 	return 0;
 }
 
 int Server::InfoDetect()
 {
 	string sourceStr, out;
-	//¶ÁÈ¡Î¯Ô±»áÍ¨Öª¹«¸æÔ´Âë
+	//è¯»å–å§”å‘˜ä¼šé€šçŸ¥å…¬å‘Šæºç 
 	int stauts = readWebSource(sourceStr);
 	if (stauts != 0)
 	{
 		return stauts;
 	}
 
-	// ÌáÈ¡ĞÅÏ¢
+	// æå–ä¿¡æ¯
 	stauts = extractInfo(sourceStr);
 	if (stauts != 0)
 	{
@@ -237,19 +244,19 @@ int Server::InfoDetect()
 	for (unsigned int i = 0; units_it!=units.end(); i++)
 	{
 		unit unit_t = *(units_it++);
-		//µØÖ·¼¯ºÏ²åÈë
+		//åœ°å€é›†åˆæ’å…¥
 		if (address.insert(unit_t.address).second)
 		{
 			units_send.push_back(unit_t);
 			cout << "[New:" << i << "]" << endl << "Time: " << unit_t.time << endl << "Title: " << unit_t.title << endl << "Address: " << unit_t.address << endl;
 		}
-		
+
 	}
 
-	//É¾³ıĞÅÏ¢¼¯»º´æ,£¨Çå³ıÔªËØ£¬µ«ĞÅÏ¢¼¯¿Õ¼ä´óĞ¡»¹ÔÚ£©
+	//åˆ é™¤ä¿¡æ¯é›†ç¼“å­˜,ï¼ˆæ¸…é™¤å…ƒç´ ï¼Œä½†ä¿¡æ¯é›†ç©ºé—´å¤§å°è¿˜åœ¨ï¼‰
 	units.clear();
 
-	//·¢ËÍĞÅÏ¢¼¯
+	//å‘é€ä¿¡æ¯é›†
 	int info_nums = 0;
 	info_nums = units_send.size();
 	if (info_nums)
@@ -258,9 +265,9 @@ int Server::InfoDetect()
 		string nums;
 		sprintf(temp, "%d", info_nums);
 		nums = temp;
-		nums = "±¾´ÎÓĞ" + nums + "¸öĞÂ¹«¸æ~\n";
-		
-		//Ñ­»·¶ÁÈ¡´ı·¢ËÍĞÅÏ¢¼¯»º´æ
+		nums = "æœ¬æ¬¡æœ‰" + nums + "ä¸ªæ–°å…¬å‘Š~\n";
+
+		//å¾ªç¯è¯»å–å¾…å‘é€ä¿¡æ¯é›†ç¼“å­˜
 
 		for (units_it = units_send.begin(); units_it != units_send.end(); units_it++)
 		{
@@ -273,49 +280,49 @@ int Server::InfoDetect()
 		cout << nums;
 		cout << out;
 
-		// ·¢ËÍĞÅÏ¢
+		// å‘é€ä¿¡æ¯
 		if (InfoSend(nums + out) == 0)
 		{
-			//·¢ËÍ³É¹¦
-			//Çå³ı·¢ËÍ»º´æ
+			//å‘é€æˆåŠŸ
+			//æ¸…é™¤å‘é€ç¼“å­˜
 			units_send.clear();
 		}
 		else
 		{
-			//·¢ËÍÊ§°Ü
-			//²»Çå³ı·¢ËÍ»º´æ£¬ÁôÏÂ´Î·¢ËÍ
-			cout << "ĞÅÏ¢·¢ËÍÊ§°Ü£¡" << endl;
+			//å‘é€å¤±è´¥
+			//ä¸æ¸…é™¤å‘é€ç¼“å­˜ï¼Œç•™ä¸‹æ¬¡å‘é€
+			cout << "ä¿¡æ¯å‘é€å¤±è´¥ï¼" << endl;
 		}
 	}
-	else cout << "Î´ÓĞĞÂ¹«¸æ¡£¡£¡£" << endl;
+	else cout << "æœªæœ‰æ–°å…¬å‘Šã€‚ã€‚ã€‚" << endl;
 	return 0;
 }
 
 int Server::InfoSend(const string & info)
 {
-	//¸üĞÂÊÕ·¢ÈËĞÅÏ¢
+	//æ›´æ–°æ”¶å‘äººä¿¡æ¯
 	if (updateConf() != 0) {
 		return -1;
 	}
-	//Á¬½Ó·¢ĞÅ·şÎñÆ÷
+	//è¿æ¥å‘ä¿¡æœåŠ¡å™¨
 	int status = smtp.Connect(smtp_url, 25, sender_userN, sender_passW);
 	if (status != 0)
 	{
 		return status;
 	}
-	//·¢ËÍÊÕĞÅÈË
+	//å‘é€æ”¶ä¿¡äºº
 	vector<string>::iterator it;
 	for (it = email.begin(); it != email.end(); it++)
 	{
 		smtp.RCPT(*it);
 	}
-	//·¢ËÍÄÚÈİ
-	smtp.Date("ÔºÍÅÎ¯¿Æ¼¼²¿(C++)", "ÃÈßÕßÕµÄ¸÷Î»Ç×", "Ñ§Ğ£Í¨Öª¹«¸æÓĞ¸üĞÂÓ´~", info);
+	//å‘é€å†…å®¹
+	smtp.Date("é™¢å›¢å§”ç§‘æŠ€éƒ¨(C++)", "èŒå“’å“’çš„å„ä½äº²", "å­¦æ ¡é€šçŸ¥å…¬å‘Šæœ‰æ›´æ–°å“Ÿ~", info);
 
 	return 0;
 }
 
-//·Ö¸îĞÅÏ¢
+//åˆ†å‰²ä¿¡æ¯
 const string divClass = "<div class=\"category-list\">";
 const string divClassEnd = "<div class=\"pages\">";
 const string divLi = "<li>";
@@ -332,56 +339,74 @@ int Server::extractInfo(string str)
 	int sFirst = 0;
 	int sEnd = 0;
 	try {
-		//¶¨Î»
+		//å®šä½
 		sFirst = str.find(divClass);
 		sEnd = str.find(divClassEnd);
-	
-		//¶¨Î»·Ö¸î
+
+		//å®šä½åˆ†å‰²
 		str = str.substr(sFirst, sEnd - sFirst);
 
 		// string str[10][3];
-		int times = 0;
 
 		for (int i = 0; i < 10; i++)
 		{
 			string tempStr;
 			string strStr, unitStr, unitStr2, unitStr3;
 			int tempF, tempE;
-			//´ó·Ö¸î
+			//å¤§åˆ†å‰²
 			sFirst = str.find(divLi);
 			sEnd = str.find(divLiEnd) + divLiEnd.length();
-			//Ï¸½Ú·Ö¸î
+			//ç»†èŠ‚åˆ†å‰²
 			tempStr = str.substr(sFirst, sEnd - sFirst);
 
-			//ÍøÖ·»ñÈ¡
+			//ç½‘å€è·å–
 			tempF = tempStr.find(divHref) + divHref.length();
 			tempE = tempStr.find(divHrefEnd, tempF);;
 			unitStr = tempStr.substr(tempF, tempE - tempF);
 
-			//±êÌâ»ñÈ¡
+			//æ ‡é¢˜è·å–
 			tempF = tempStr.find(divTitle, tempE) + divTitle.length();
 			tempE = tempStr.find(divTitleEnd);
 			unitStr3 = tempStr.substr(tempF, tempE - tempF);
 
-			//Ê±¼ä»ñÈ¡
+			//æ—¶é—´è·å–
 			tempF = tempStr.find(divTime) + divTime.length();
 			tempE = tempStr.find(divTimeEnd);
 			unitStr2 = tempStr.substr(tempF, tempE - tempF);
 
-			// ¼ÓÈëĞÅÏ¢¼¯»º´æ
+			// åŠ å…¥ä¿¡æ¯é›†ç¼“å­˜
 			units.push_back(unit(unitStr2, unitStr3, unitStr));
 
-			//µü´ú·Ö¸î?
+			//è¿­ä»£åˆ†å‰²?
 			str = str.substr(sEnd, str.size());
 		}
 	}
 	catch (std::exception e) {
-		cout << "*ĞÅÏ¢·Ö¸îÒì³£*" << endl;
+		cout << "*ä¿¡æ¯åˆ†å‰²å¼‚å¸¸*" << endl;
 		cout << e.what() << endl;
 		cout << "First:" << sFirst << " " << "End:" << sEnd << endl;
 		return -8;
 	}
-	
+
 
 	return 0;
 }
+
+
+std::string& TrimL(std::string& str)
+{
+	str.erase(0, str.find_first_not_of(" \t\n\r"));
+	return str;
+}
+
+std::string& TrimR(std::string& str)
+{
+	str.erase(str.find_last_not_of(" \t\n\r") + 1);
+	return str;
+}
+
+std::string& Server::Trim(std::string& str)
+{
+	return TrimR(TrimL(str));
+}
+

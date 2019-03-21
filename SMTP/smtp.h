@@ -1,7 +1,10 @@
-#pragma once
-#pragma comment(lib,"ws2_32.lib")
+ï»¿
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <netdb.h>
 
-#include <winsock2.h>
 #include <string>
 #include <iostream>
 #include "base64.h"
@@ -13,23 +16,21 @@ class Smtp
 public:
 	Smtp();
 	~Smtp();
-	// SMTP³õÊ¼»¯
+	// SMTPåˆå§‹åŒ–
 	int Init();
-	// Á¬½Ó·¢ĞÅ·şÎñÆ÷
+	// è¿æ¥å‘ä¿¡æœåŠ¡å™¨
 	int Connect(string address,unsigned int port,string account,string password);
-	// Ìí¼ÓÊÕ¼şÈË£¬¿ÉÖØ¸´µ÷ÓÃ
+	// æ·»åŠ æ”¶ä»¶äººï¼Œå¯é‡å¤è°ƒç”¨
 	int RCPT(string recipient);
-	// Ìí¼ÓÊı¾İ
+	// æ·»åŠ æ•°æ®
 	int Date(string YourName, string TaName, string Title, string text);
 	//
 private:
 	//
-	WORD wVersionRequested;
-	WSADATA wsaData;
 	int err;
 	//
-	SOCKET sClient;
-	SOCKADDR_IN addrSrv;
+	int sClient;
+	sockaddr_in addrSrv;
 	hostent *host;
 	//
 	string Account;

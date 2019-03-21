@@ -5,23 +5,21 @@
 main.cpp
     入口主程序
 
-server.cpp
+server.cpp \ server.h
     服务框架，实现整个流程
     
-smtp.cpp
+smtp.cpp \ smtp.h
     用来连接发信服务器和发送邮件（socket）
     
-http.cpp
+http.cpp \ http.h
     实现网页源代码的读取（socket）
 
-base64.cpp
+base64.cpp \ base64.h
     编码转换,发信用
 
-/////////////////////////////////////////////////////////////////////////////
-其他标准文件:
+conf.ini
+    配置文件，实现动态添加订阅人和其他信息
 
-StdAfx.h
-    这些文件用于生成名为 SMTP.pch 的预编译头 (PCH) 文件和名为 StdAfx.obj 的预编译类型文件。
-
-/////////////////////////////////////////////////////////////////////////////
+smtp.cbp
+    codeblocks项目配置文件
 

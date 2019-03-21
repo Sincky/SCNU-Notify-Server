@@ -1,8 +1,8 @@
-#include "smtp.h"
+ï»¿#include "smtp.h"
+#include <memory.h>
 
 Smtp::Smtp()
 {
-	wVersionRequested = MAKEWORD(1, 1);
 	memset(rBuff, 0, sizeof(rBuff));
 }
 
@@ -14,29 +14,17 @@ Smtp::~Smtp()
 
 void Smtp::destrution()
 {
-	if (err == 0)//´ıÓÅ»¯
+	if (err == 0)//å¾…ä¼˜åŒ–
 	{
-		WSACleanup();
-		closesocket(sClient);
+
+		close(sClient);
 	}
 }
 
 
-//SMTP³õÊ¼»¯
+//SMTPåˆå§‹åŒ–
 int Smtp::Init()
 {
-	wVersionRequested = MAKEWORD(1, 1);
-	err = WSAStartup(wVersionRequested, &wsaData);
-	if (err != 0)
-	{
-		return -1;
-	}
-
-	if (LOBYTE(wsaData.wVersion) != 1 || HIBYTE(wsaData.wVersion) != 1)
-	{
-		WSACleanup();
-		return -2;
-	}
 	return 0;
 }
 
@@ -45,19 +33,23 @@ int Smtp::Connect(string address, unsigned int port,string account,string passwo
 {
 	Account = account;
 	Password = password;
-	//½¨Á¢Í¨Ñ¶
+	//å»ºç«‹é€šè®¯
 	sClient = socket(AF_INET, SOCK_STREAM, 0);
+
 	host = gethostbyname(address.c_str());
-	addrSrv.sin_addr.S_un.S_addr = inet_addr(inet_ntoa(*(in_addr*)host->h_addr));
+
+	cout << host->h_name  << endl;
+
+	addrSrv.sin_addr.s_addr = inet_addr(inet_ntoa(*(in_addr*)host->h_addr));
 	addrSrv.sin_family = AF_INET;
 	addrSrv.sin_port = htons(port);
 
-	//Á¬½Ó·şÎñÆ÷
-	if (connect(sClient, (LPSOCKADDR)&addrSrv, sizeof(addrSrv)) == SOCKET_ERROR)
+	//è¿æ¥æœåŠ¡å™¨
+	if (connect(sClient, (sockaddr*)&addrSrv, sizeof(addrSrv)) == -1)
 	{
-		
-		closesocket(sClient);
-		cout << "Á¬½Ó·¢ĞÅ·şÎñÆ÷Ê§°Ü!£¨SOCKET_ERROR:" << WSAGetLastError() <<")" << endl;
+
+		close(sClient);
+		cout << "è¿æ¥å‘ä¿¡æœåŠ¡å™¨å¤±è´¥!"   << endl;
 		cout << address << " " << port << endl;
 		return -1;
 	}
@@ -65,21 +57,21 @@ int Smtp::Connect(string address, unsigned int port,string account,string passwo
 	recv(sClient, rBuff, 1024, 0);
 	cout << rBuff << endl;
 
-	//´òÕĞºô
+	//æ‰“æ‹›å‘¼
 	cout << "helo hihi: " << endl;
 	sBuff = "helo hihi\r\n";
 	send(sClient, sBuff.c_str(), sBuff.size(), 0);
 	recv(sClient, rBuff, 1024, 0);
 	cout << rBuff << endl;
 
-	//¿ªÊ¼µÇÂ½
+	//å¼€å§‹ç™»é™†
 	cout << "auth login: " << endl;
 	sBuff = "auth login\r\n";
 	send(sClient, sBuff.c_str(), sBuff.size(), 0);
 	recv(sClient, rBuff, 1024, 0);
 	cout << rBuff << endl;
 
-	//·¢ËÍÕËºÅ
+	//å‘é€è´¦å·
 	cout << "send userN: " << endl;
 	sBuff = base64_encode(account.c_str(), account.size()) + "\r\n";
 	cout << sBuff<<endl;
@@ -87,7 +79,7 @@ int Smtp::Connect(string address, unsigned int port,string account,string passwo
 	recv(sClient, rBuff, 1024, 0);
 	cout << rBuff << endl;
 
-	//·¢ËÍÃÜÂë
+	//å‘é€å¯†ç 
 	cout << "send passW: " << endl;
 	sBuff = base64_encode(password.c_str(), password.size()) + "\r\n";
 	cout << sBuff<<endl;
@@ -95,7 +87,7 @@ int Smtp::Connect(string address, unsigned int port,string account,string passwo
 	recv(sClient, rBuff, 1024, 0);
 	cout << rBuff << endl;
 
-	//·¢ËÍ·¢¼şÈË
+	//å‘é€å‘ä»¶äºº
 	cout << "send FROM: " << endl;
 	sBuff = "MAIL FROM:<" + account + ">\r\n";
 	send(sClient, sBuff.c_str(), sBuff.size(), 0);
@@ -105,7 +97,7 @@ int Smtp::Connect(string address, unsigned int port,string account,string passwo
 	return 0;
 }
 
-// Ìí¼ÓÊÕ¼şÈË
+// æ·»åŠ æ”¶ä»¶äºº
 int Smtp::RCPT(string recipient)
 {
 	cout << "send recipients: " << endl;
@@ -117,7 +109,7 @@ int Smtp::RCPT(string recipient)
 	return 0;
 }
 
-// Ìí¼ÓÊı¾İ
+// æ·»åŠ æ•°æ®
 int Smtp::Date(string YourName,string TaName,string Title,string text)
 {
 	cout << "send Data: " << endl;
@@ -132,7 +124,7 @@ int Smtp::Date(string YourName,string TaName,string Title,string text)
 	recv(sClient, rBuff, 1024, 0);
 	cout << rBuff << endl;
 
-	//Àë¿ª
+	//ç¦»å¼€
 	cout << "sed quit: " << endl;
 	sBuff = "quit\r\n";
 	send(sClient, sBuff.c_str(), sBuff.size(), 0);
