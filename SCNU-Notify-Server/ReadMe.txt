@@ -22,4 +22,3 @@ conf.ini
 
 smtp.cbp
     codeblocks项目配置文件
-
